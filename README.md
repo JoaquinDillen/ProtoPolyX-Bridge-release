@@ -29,24 +29,13 @@ Current release notes: `v1.0.0`
 - Opens PolyScope X and ProtoTwin in the browser.
 - Launches ProtoTwin Connect when installed.
 - Runs the RTDE bridge for live robot mirroring.
-- Provides direct Modbus gripper output for the classroom ProtoTwin setup.
 
-## Classroom modes
+## Bridge workflow
 
-### Python bridge mode
-
-Use this for live mirroring, including manual jogging.
+Use this app for live mirroring, including manual jogging.
 
 ```text
 URSim -> RTDE port 30004 -> ProtoPolyX Bridge -> ProtoTwin Connect
-```
-
-### Direct Modbus mode
-
-Use this for PolyScope program playback, one-shot pose updates, and gripper commands.
-
-```text
-URSim Modbus TCP port 502 -> ProtoTwin Connect -> ProtoTwin mapper component
 ```
 
 ## First-time setup
@@ -56,15 +45,14 @@ URSim Modbus TCP port 502 -> ProtoTwin Connect -> ProtoTwin mapper component
 3. Use the app's **Install** buttons for Docker Desktop and ProtoTwin Connect if needed.
 4. Launch Docker Desktop.
 5. Launch the URSim container from the app.
-6. Enable these PolyScope X services:
+6. Enable this PolyScope X service:
 
 ```text
-Modbus TCP Server    Port 502
 RTDE                 Port 30004
 ```
 
-7. Open ProtoTwin Connect and configure the classroom Modbus tags/model mapping.
-8. Start the bridge or use the direct Modbus workflow.
+7. Open ProtoTwin Connect and the prepared ProtoTwin model.
+8. Start the bridge from the app.
 
 ## Network behavior
 
@@ -76,7 +64,6 @@ Detailed setup guides are maintained with the source project and may also be att
 
 - Student setup guide
 - Portuguese Portugal setup guide
-- Direct Modbus / ProtoTwin mapper guide
 
 ## Troubleshooting
 
@@ -91,10 +78,6 @@ Use the **Install** button in the app. ProtoTwin Connect is downloaded from your
 ### The bridge does not start
 
 Check that URSim is running and RTDE is enabled on port `30004`. Also confirm ProtoTwin Connect is open and signed in.
-
-### Direct Modbus values are NULL
-
-Check that PolyScope X has **Modbus TCP Server** enabled and that ProtoTwin Connect is reading `127.0.0.1:502`.
 
 ## License
 

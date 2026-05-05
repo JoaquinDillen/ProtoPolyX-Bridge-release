@@ -5,7 +5,6 @@
 - Provides a packaged `.exe` app for classroom use.
 - Starts URSim / PolyScope X through Docker with local-only ports.
 - Supports RTDE bridge mode for live robot mirroring through ProtoTwin Connect.
-- Supports direct Modbus classroom workflow for program playback and gripper commands.
 - Adds app install shortcuts for Docker Desktop and ProtoTwin Connect.
 - Runtime configuration files are created beside the executable on first run if missing.
 - Uses the ProtoPolyX Bridge application icon.
