@@ -1,0 +1,28 @@
+global keep_modbus_joint_sync_running = True
+
+def encode_joint_for_modbus(angle_rad):
+  return floor(angle_rad * 572.957795 + 10000.5)
+end
+
+thread modbus_joint_sync_thread():
+  while keep_modbus_joint_sync_running:
+    q = get_actual_joint_positions()
+
+    write_port_register(128, encode_joint_for_modbus(q[0]))
+    write_port_register(129, encode_joint_for_modbus(q[1]))
+    write_port_register(130, encode_joint_for_modbus(q[2]))
+    write_port_register(131, encode_joint_for_modbus(q[3]))
+    write_port_register(132, encode_joint_for_modbus(q[4]))
+    write_port_register(133, encode_joint_for_modbus(q[5]))
+
+    sync()
+  end
+end
+
+modbus_joint_sync = run modbus_joint_sync_thread()
+
+movej([0.3, -1.2, 1.4, -1.5, 0.2, 0.0], a=0.5, v=0.3)
+movej([0.0, -1.57, 1.57, -1.57, 0.0, 0.0], a=0.5, v=0.3)
+
+keep_modbus_joint_sync_running = False
+join modbus_joint_sync
