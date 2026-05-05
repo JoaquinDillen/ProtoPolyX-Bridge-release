@@ -1,186 +1,104 @@
-# URSim → ProtoTwin Bridge
+# ProtoPolyX Bridge (Release)
 
-Streams live joint positions from a UR robot running in **URSim (PolyScope X)**
-to a **UR10 digital twin in ProtoTwin**, so programs written in PolyScope animate
-the 3D model in real time.
+<p align="center">
+  <img src="assets/ProtoPolyX-Bridge_256.png" alt="ProtoPolyX Bridge Logo" width="180">
+</p>
 
-```
-URSim (Docker)  →  RTDE port 30004  →  bridge.py  →  ProtoTwin Connect  →  3D robot
-```
+This repository hosts **public Windows releases** of **ProtoPolyX Bridge**.
 
-## Quick Start — GUI (recommended)
+ProtoPolyX Bridge connects **Universal Robots URSim / PolyScope X** with a **ProtoTwin digital twin** so students can practise robot programming workflows and see the robot motion reflected in simulation.
 
-Install the GUI dependency, then launch the control panel:
+## Download
 
-```bash
-pip install customtkinter
-python app.py
-```
+Go to **Releases** and download the latest `URSimProtoTwinBridge.exe`.
 
-The app guides you through each step: starting Docker, URSim, ProtoTwin Connect,
-opening the browser tabs, and starting the bridge — all from one window.
-
-## Quick Start — Command line
-
----
+Current release notes: `v1.0.0`
 
 ## Requirements
 
-- Windows 11
-- Python 3.9+
-- Docker Desktop with the URSim image
-- [ProtoTwin Connect](https://prototwin.com) desktop app (logged in)
-- A ProtoTwin model containing a UR10 robot with joint input signals configured
+- Windows 10/11
+- Docker Desktop
+- ProtoTwin Connect
+- ProtoTwin account and model prepared for the bridge workflow
+- Internet access for first Docker image pull
 
----
+## What the app does
 
-## 1. Install Dependencies
+- Launches Docker Desktop when installed.
+- Starts the URSim PolyScope X container with local-only ports.
+- Opens PolyScope X and ProtoTwin in the browser.
+- Launches ProtoTwin Connect when installed.
+- Runs the RTDE bridge for live robot mirroring.
+- Provides direct Modbus gripper output for the classroom ProtoTwin setup.
 
-```bash
-pip install ur-rtde prototwin
+## Classroom modes
+
+### Python bridge mode
+
+Use this for live mirroring, including manual jogging.
+
+```text
+URSim -> RTDE port 30004 -> ProtoPolyX Bridge -> ProtoTwin Connect
 ```
 
-> **Note:** `ur-rtde` is the pip package name; the import inside Python is
-> `rtde_receive`. If the install fails on Windows, upgrade pip first:
-> `python -m pip install --upgrade pip`
+### Direct Modbus mode
 
----
+Use this for PolyScope program playback, one-shot pose updates, and gripper commands.
 
-## 2. Start URSim in Docker
-
-```bash
-docker run --rm -it \
-  -p 30001:30001 \
-  -p 30002:30002 \
-  -p 30003:30003 \
-  -p 30004:30004 \
-  -p 29999:29999 \
-  universalrobots/ursim_polyscopex:latest
+```text
+URSim Modbus TCP port 502 -> ProtoTwin Connect -> ProtoTwin mapper component
 ```
 
-Wait until the PolyScope X web interface loads (usually `http://localhost:29999`).
-The RTDE interface on port **30004** is active as soon as the controller boots.
+## First-time setup
 
----
+1. Download `URSimProtoTwinBridge.exe` from Releases.
+2. Run the app.
+3. Use the app's **Install** buttons for Docker Desktop and ProtoTwin Connect if needed.
+4. Launch Docker Desktop.
+5. Launch the URSim container from the app.
+6. Enable these PolyScope X services:
 
-## 3. Configure Robot Joint Signals in ProtoTwin
-
-This is the only manual setup step. The bridge writes to ProtoTwin signals by
-**integer address**. You need to look these up in your model.
-
-### How to find the signal addresses
-
-1. Open your model at [play.prototwin.com](https://play.prototwin.com)
-2. Click each joint component of the UR10 arm in the scene
-3. Open **Properties → Signals** in the panel on the right
-4. Find the **input** signal for joint position (typically named something like
-   `Joint Position` or `q`) and note its **address** integer
-5. Open `bridge.py` and update `JOINT_SIGNAL_ADDRESSES` near the top:
-
-```python
-JOINT_SIGNAL_ADDRESSES = [
-    12,   # base     (J1)  ← replace with your real addresses
-    13,   # shoulder (J2)
-    14,   # elbow    (J3)
-    15,   # wrist1   (J4)
-    16,   # wrist2   (J5)
-    17,   # wrist3   (J6)
-]
+```text
+Modbus TCP Server    Port 502
+RTDE                 Port 30004
 ```
 
-### Radians vs degrees
+7. Open ProtoTwin Connect and configure the classroom Modbus tags/model mapping.
+8. Start the bridge or use the direct Modbus workflow.
 
-RTDE delivers angles in **radians**. The bridge converts them to **degrees**
-before writing to ProtoTwin (`CONVERT_TO_DEGREES = True`).
+## Network behavior
 
-If your ProtoTwin joint signals expect radians instead, set this flag to `False`
-at the top of `bridge.py`.
+The app starts URSim with ports bound to `127.0.0.1` only. Each student's simulator is reachable only from their own computer, not from other machines on the classroom network.
 
----
+## Documentation
 
-## 4. Start ProtoTwin Connect
+Detailed setup guides are maintained with the source project and may also be attached to course material:
 
-Launch the **ProtoTwin Connect** desktop application and make sure you are signed in.
-It runs a local gRPC server that the Python client (`prototwin.start()`) connects to.
-The bridge will not start until this app is running.
-
----
-
-## 5. Run the Bridge
-
-```bash
-python bridge.py
-```
-
-### Expected startup output
-
-```
-============================================================
-  URSim → ProtoTwin Bridge
-  Streaming UR10 joint angles via RTDE → ProtoTwin
-============================================================
-
-[Config] WARNING: JOINT_SIGNAL_ADDRESSES are still set to placeholder …
-         (this warning disappears once you set real addresses)
-
-[RTDE] Connecting to 127.0.0.1:30004 …
-[RTDE] Connected.
-
-[ProtoTwin] Connecting to ProtoTwin Connect …
-[ProtoTwin] Connected.
-
-[Bridge] Streaming at 50 Hz — press Ctrl+C to stop.
-
-[Bridge] base=0.0°, shoulder=-90.0°, elbow=90.0°, wrist1=-90.0°, wrist2=0.0°, wrist3=0.0°
-[Bridge] base=0.0°, shoulder=-90.0°, elbow=90.0°, wrist1=-90.0°, wrist2=0.0°, wrist3=0.0°
-…
-```
-
-Now **play a program in PolyScope X** — the UR10 in your ProtoTwin scene should
-move in sync with the simulator.
-
-Press **Ctrl+C** to stop. The RTDE connection is closed cleanly on exit.
-
----
-
-## Behaviour Reference
-
-| Situation | What the bridge does |
-|---|---|
-| Normal operation | Forwards joint angles to ProtoTwin at ~50 Hz |
-| URSim not yet running | Retries RTDE connection every 3 s |
-| ProtoTwin Connect not running | Retries ProtoTwin connection every 3 s |
-| Either side disconnects mid-run | Reconnects both ends automatically |
-| Ctrl+C | Graceful shutdown; RTDE socket closed |
-
----
+- Student setup guide
+- Portuguese Portugal setup guide
+- Direct Modbus / ProtoTwin mapper guide
 
 ## Troubleshooting
 
-**`ModuleNotFoundError: No module named 'rtde_receive'`**  
-→ Run `pip install ur-rtde` (the pip name and the import name differ)
+### Docker Desktop is not found
 
-**`[RTDE] Connection failed: …` and keeps retrying**  
-→ Check the Docker container is running: `docker ps`  
-→ Confirm port 30004 is forwarded: `docker run … -p 30004:30004 …`
+Use the **Install** button in the app or install Docker Desktop manually from Docker's official Windows installation page.
 
-**`[ProtoTwin] Connection failed`**  
-→ Open ProtoTwin Connect, sign in, then retry
+### ProtoTwin Connect is not found
 
-**Robot in ProtoTwin doesn't move (but bridge is running)**  
-→ The signal addresses in `JOINT_SIGNAL_ADDRESSES` are wrong  
-→ Re-check the addresses in your ProtoTwin model (step 3 above)  
-→ Check that `CONVERT_TO_DEGREES` matches what the ProtoTwin signals expect
+Use the **Install** button in the app. ProtoTwin Connect is downloaded from your ProtoTwin account page after signing in.
 
-**`TypeError: object is not awaitable` on `client.set()`**  
-→ Your version of the prototwin package exposes `set()` as a coroutine  
-→ In `bridge.py`, change `client.set(address, value)` to `await client.set(address, value)`
+### The bridge does not start
 
----
+Check that URSim is running and RTDE is enabled on port `30004`. Also confirm ProtoTwin Connect is open and signed in.
 
-## Files
+### Direct Modbus values are NULL
 
-| File | Purpose |
-|---|---|
-| `bridge.py` | The bridge script |
-| `README.md` | This file |
+Check that PolyScope X has **Modbus TCP Server** enabled and that ProtoTwin Connect is reading `127.0.0.1:502`.
+
+## License
+
+PolyForm Noncommercial 1.0.0 (see `LICENSE`).
+
+[//]: # (This is a binary release repository.)
+[//]: # (The Windows executable is published through GitHub Releases.)

@@ -1,8 +1,0 @@
-# Set ProtoTwin gripper opening through Modbus register 134.
-# 0.0 = open, 0.4 = closed for the current ProtoTwin finger setup.
-
-def encode_gripper_for_modbus(position):
-  return floor(position * 10000 + 0.5)
-end
-
-write_port_register(134, encode_gripper_for_modbus(0.4))
